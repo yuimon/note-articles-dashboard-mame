@@ -29,4 +29,4 @@
 
 ## 公開URL
 
-GitHub Pages公開URLは**準備中**です（確定後にここへ追記）。
+https://yuimon.github.io/note-articles-dashboard-mame/
