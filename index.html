@@ -1,0 +1,311 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>まめnote 記事ライブラリ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #f4f8fb;
+    --bg-elev: #ffffff;
+    --bg-sunken: #e8f0f4;
+    --text: #1f2933;
+    --text-muted: #5c6b76;
+    --border: #d6e2e9;
+    --accent: #1f9e8f;
+    --accent-ink: #16776b;
+    --accent-soft: #d8f0eb;
+    --cat-AI活用: #2f7fd6;
+    --cat-IT就活・資格: #6366c7;
+    --cat-投資・トレード: #1f9e74;
+    --cat-バイト・お金: #2aa8a0;
+    --cat-習慣・生活: #6a9a2f;
+    --shadow: 0 1px 2px rgba(31,41,51,.06), 0 4px 16px rgba(31,41,51,.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10181c; --bg-elev: #182430; --bg-sunken: #14202a;
+      --text: #e8f0f3; --text-muted: #a1b3bd; --border: #29383f;
+      --accent: #4fcbb5; --accent-ink: #7fdcc9; --accent-soft: #133029;
+      --cat-AI活用: #6bb0ef; --cat-IT就活・資格: #9299ee; --cat-投資・トレード: #4fc79a;
+      --cat-バイト・お金: #52cabf; --cat-習慣・生活: #a4cf68;
+      --shadow: 0 1px 2px rgba(0,0,0,.25), 0 4px 20px rgba(0,0,0,.3);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10181c; --bg-elev: #182430; --bg-sunken: #14202a;
+    --text: #e8f0f3; --text-muted: #a1b3bd; --border: #29383f;
+    --accent: #4fcbb5; --accent-ink: #7fdcc9; --accent-soft: #133029;
+    --cat-AI活用: #6bb0ef; --cat-IT就活・資格: #9299ee; --cat-投資・トレード: #4fc79a;
+    --cat-バイト・お金: #52cabf; --cat-習慣・生活: #a4cf68;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f8fb; --bg-elev: #ffffff; --bg-sunken: #e8f0f4;
+    --text: #1f2933; --text-muted: #5c6b76; --border: #d6e2e9;
+    --accent: #1f9e8f; --accent-ink: #16776b; --accent-soft: #d8f0eb;
+    --cat-AI活用: #2f7fd6; --cat-IT就活・資格: #6366c7; --cat-投資・トレード: #1f9e74;
+    --cat-バイト・お金: #2aa8a0; --cat-習慣・生活: #6a9a2f;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "游ゴシック体", "Yu Gothic", YuGothic, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    line-height: 1.7;
+  }
+  .shell { display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 100vh; }
+  @media (max-width: 860px) { .shell { grid-template-columns: 1fr; } }
+
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 28px 22px;
+    display: flex; flex-direction: column; gap: 24px;
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+  }
+  @media (max-width: 860px) {
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+  .brand { font-family: "游明朝体", "Yu Mincho", YuMincho, "Hiragino Mincho ProN", serif; }
+  .brand-name { font-size: 1.05rem; font-weight: 700; letter-spacing: .02em; }
+  .brand-sub { font-size: .78rem; color: var(--text-muted); margin-top: 4px; }
+
+  .stat-card {
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  .stat-title { font-size: .68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .stat-row { display: flex; justify-content: space-between; font-size: .84rem; padding: 3px 0; }
+  .stat-row + .stat-row { border-top: 1px dashed var(--border); }
+  .stat-num { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent-ink); }
+
+  .filter-group { display: flex; flex-direction: column; gap: 8px; }
+  .filter-label { font-size: .68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    border: 1px solid var(--border); background: var(--bg-elev); color: var(--text);
+    font-size: .78rem; padding: 5px 11px; border-radius: 999px; cursor: pointer;
+    font-family: inherit; transition: background .15s, border-color .15s, color .15s;
+  }
+  .pill:hover { border-color: var(--accent); }
+  .pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .search-box {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg-elev); color: var(--text); font-size: .88rem; font-family: inherit;
+  }
+  .search-box:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .content { padding: 34px 40px 80px; max-width: 900px; }
+  @media (max-width: 860px) { .content { padding: 24px 20px 60px; } }
+  .page-head h1 {
+    font-family: "游明朝体", "Yu Mincho", YuMincho, "Hiragino Mincho ProN", serif;
+    font-size: 1.7rem; margin: 0 0 6px; text-wrap: balance;
+  }
+  .page-head p { margin: 0; color: var(--text-muted); font-size: .9rem; }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin: 22px 0 16px; font-size: .82rem; color: var(--text-muted);
+  }
+  #count-label { font-variant-numeric: tabular-nums; }
+
+  .article-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+  details.article {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  details.article[open] { border-color: var(--accent); }
+  summary.article-head {
+    list-style: none; cursor: pointer; padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  summary.article-head::-webkit-details-marker { display: none; }
+  summary.article-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .a-num {
+    font-variant-numeric: tabular-nums; font-weight: 700; font-size: .95rem;
+    color: var(--accent-ink); background: var(--accent-soft); border-radius: 6px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .a-main { flex: 1; min-width: 0; }
+  .a-title {
+    font-family: "游明朝体", "Yu Mincho", YuMincho, "Hiragino Mincho ProN", serif;
+    font-size: 1rem; font-weight: 700; margin: 0 0 4px; text-wrap: balance;
+  }
+  .a-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .74rem; color: var(--text-muted); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px;
+    background: var(--bg-sunken); border: 1px solid var(--border); white-space: nowrap;
+  }
+  .chip.cat { color: #fff; border: none; }
+  .chip.tabular { font-variant-numeric: tabular-nums; }
+
+  .a-chevron { flex-shrink: 0; color: var(--text-muted); transition: transform .15s; }
+  details.article[open] .a-chevron { transform: rotate(90deg); }
+
+  .article-body { padding: 0 18px 22px 66px; border-top: 1px solid var(--border); margin-top: 2px; padding-top: 16px; }
+  @media (max-width: 640px) { .article-body { padding-left: 18px; } }
+  .a-prose { max-width: 65ch; font-size: .92rem; }
+  .a-prose h3 { font-family: "游明朝体", "Yu Mincho", YuMincho, "Hiragino Mincho ProN", serif; font-size: 1.02rem; margin: 1.4em 0 .5em; }
+  .a-prose h4 { font-size: .95rem; margin: 1.1em 0 .4em; color: var(--accent-ink); }
+  .a-prose p { margin: 0 0 1em; }
+  .a-prose ul { margin: 0 0 1em; padding-left: 1.3em; }
+  .a-prose li { margin: .2em 0; }
+  .a-prose a { color: var(--accent-ink); }
+  .a-prose .callout {
+    background: var(--bg-sunken); border-left: 3px solid var(--accent);
+    padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 1.2em 0; font-size: .88rem;
+  }
+
+  .empty-state { color: var(--text-muted); padding: 40px 0; text-align: center; font-size: .9rem; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">まめ｜現役大学生のnote</div>
+      <div class="brand-sub">記事ライブラリ（全13本）</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">全体サマリー</div>
+      <div class="stat-row"><span>全記事</span><span class="stat-num">13本</span></div>
+      <div class="stat-row"><span>カテゴリ数</span><span class="stat-num">5</span></div>
+      <div class="stat-row"><span>平均文字数</span><span class="stat-num">828字</span></div>
+      <div class="stat-row"><span>AI活用</span><span class="stat-num">3本</span></div>
+      <div class="stat-row"><span>IT就活・資格</span><span class="stat-num">3本</span></div>
+      <div class="stat-row"><span>投資・トレード</span><span class="stat-num">2本</span></div>
+      <div class="stat-row"><span>バイト・お金</span><span class="stat-num">3本</span></div>
+      <div class="stat-row"><span>習慣・生活</span><span class="stat-num">2本</span></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">記事を検索</div>
+      <input class="search-box" id="search" type="text" placeholder="タイトル・本文から検索">
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">カテゴリ</div>
+      <div class="pill-row" id="cat-filters"></div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="page-head">
+      <h1>まめnote 記事ライブラリ</h1>
+      <p>現役大学生「まめ」の実体験note、全13本をまとめて確認できます。タイトルをクリックすると本文が展開されます。</p>
+    </div>
+    <div class="toolbar">
+      <span id="count-label">13本を表示中</span>
+      <span>IT就活・AI活用・投資・バイト・習慣のリアルな記録</span>
+    </div>
+    <ol class="article-list" id="list"></ol>
+  </main>
+</div>
+
+<script id="article-data" type="application/json">[{"num":1,"title":"文系ノリの大学生がClaudeと一緒に「自動売買Bot」を作ってみた話","category":"AI活用","body":"こんにちは、まめです。\n\n来年からITエンジニアとして働く予定なのですが、正直に言うと今もまだ「独学でコード書いてます」レベルの初心者です。それでも今、Claudeと一緒にFXの自動売買Botを作って、実際に動かしています。\n\n今日は「プログラミング初心者でもAIと組めばここまでできる」というリアルな記録を残しておきます。\n\n## きっかけは「デイトレをもっと仕組み化したい」\n\nもともと株のデイトレをやっていて、毎朝チャートとにらめっこして「今日は買いかな、様子見かな」と判断するのがけっこう大変でした。\n\n「この判断、感覚じゃなくてルール化できないかな」\n「ルール化できたら、自動で売買してくれるBotにできるんじゃないか」\n\nそう思ったのが最初のきっかけです。プログラミングは授業でちょっと触った程度だったので、正直「自分に作れるのか？」という気持ちの方が大きかったです。\n\n## Claudeとの作り方は「壁打ち→試す→直す」の繰り返し\n\n実際にやったことはシンプルで、\n\n1. 「こういう条件で売買したい」をClaudeに日本語で説明する\n2. コードにしてもらう\n3. デモ口座（本物のお金は使わない練習用口座）で動かしてみる\n4. うまくいかないところをまたClaudeに相談して直す\n\nこの繰り返しです。エラーが出ても「このエラーの意味を教えて」と聞けばだいたい解決の糸口が見つかるので、「知識がないから無理」ではなく「知識がなくても一歩ずつ進める」という感覚に近かったです。\n\n## AIにも「売買の判断」を手伝ってもらっている\n\n今は売買ルールだけでなく、過去のデータから「勝ちやすいパターン」を学習させたAIフィルターも組み込んでいます。難しく聞こえますが、やっていることは「過去の取引結果を振り返って、条件を絞り込んでいく」という地味な作業の積み重ねです。\n\nデータを見返す中で、\n\n- 短時間で決着をつけようとするより、少し長めに持った方が成績が良かった\n- 曜日によって相性の良し悪しがはっきり出ていた\n\nなど、感覚だけではわからなかった発見もありました。もちろん今も試行錯誤中で、うまくいかない時期もたくさんあります（というか、そっちの方が多いです）。\n\n## この経験から伝えたいこと\n\n- プログラミング未経験でも、AIと一緒なら「作りながら学ぶ」ができる\n- 完璧な設計より、まず小さく動かして失敗から直していく方が早い\n- 「自分ごと」のテーマ（今回は自分のトレード）があると、勉強のモチベーションが続きやすい\n\nこれから「AIを使って何か作ってみたいけどエンジニアじゃないし…」と思っている大学生の参考に少しでもなればうれしいです。\n\n※この記事は投資の勧誘や特定の手法の推奨を目的としたものではありません。投資には元本割れ等のリスクがあり、実践する場合はご自身の判断・責任でお願いします。","wordCount":1145},{"num":2,"title":"ITパスポートに独学一発合格した話｜使った教材と勉強法","category":"IT就活・資格","body":"こんにちは、まめです。\n\n来年からITエンジニアとして働くことが決まっているのですが、正直に言うと就活が終わった時点でのITの知識は「初心者未満」でした。「IT企業に入るのに、IT用語もろくにわからないままでいいのかな」という不安から、ITパスポート試験を受けることにしました。\n\n結果は独学で一発合格できたので、今日はその勉強法を振り返ります。\n\n## なぜITパスポートから始めたのか\n\nIT系の資格はいろいろありますが、いきなり難しい資格に挑戦して挫折するのが一番もったいないと思い、「まずは自信をつける」ことを目的にITパスポートを選びました。\n\n- 出題範囲がIT全般の基礎（経営・法務・技術）を浅く広くカバーしている\n- CBT方式でいつでも受験でき、結果もすぐわかる\n- 「IT知識ゼロの状態から、ちゃんと勉強すれば受かる」という成功体験を先に作りたかった\n\nという理由です。\n\n## 使った教材・勉強法\n\n- 定番の参考書を1冊決めて、最初から最後まで通読\n- その後はひたすら過去問道場（無料の過去問演習サイト）を周回\n- 間違えた問題は「なぜその答えになるのか」を参考書に戻って確認\n- 用語は完璧に覚えようとせず、「何のためにある仕組みか」のイメージを掴むことを優先\n\n暗記科目だと思われがちですが、個人的には「丸暗記」より「全体像を掴む」意識の方が最後まで続けやすかったです。\n\n## 受けてみて感じたこと\n\n- 経営・法務分野は普段の生活や就活の知識とつながる部分も多く、思ったより苦にならなかった\n- 技術分野は初見の単語が多く、最初は苦戦したが、過去問を繰り返すうちにパターンが見えてきた\n- 「わからないところをそのままにしない」の積み重ねが結局一番効いた\n\n無事に合格でき、想像していたより高いスコアが取れたのも自信になりました。\n\n## 今は基本情報技術者の勉強中\n\nITパスポートで基礎を固めた後は、次のステップとして基本情報技術者試験の勉強を進めています。こちらはアルゴリズムやプログラミングの内容も入ってくるので難易度は上がりますが、ITパスポートで作った土台のおかげで「ゼロからのスタート」ではない感覚があります。\n\n## これからIT資格に挑戦する人へ\n\n- いきなり難しい資格から始めなくていい。基礎固めの資格で「受かる感覚」を掴むのも立派な戦略\n- 過去問演習は最強の勉強法。参考書とセットで繰り返すのがおすすめ\n- IT知識ゼロでも、正しい順番で積み上げれば独学で十分いける\n\n同じように「IT就職は決まったけど知識に不安がある」という大学生の参考になればうれしいです。","wordCount":1027},{"num":3,"title":"投資超初心者の大学生がデイトレを始めてみて分かったこと","category":"投資・トレード","body":"こんにちは、まめです。\n\n社会人になる前に「お金と向き合う力」をつけておきたいと思い、証券口座を開いてデイトレードを始めました。最初は右も左もわからない状態からのスタートでしたが、続けてみて見えてきたことをまとめます。\n\n※この記事は特定の銘柄や手法をすすめるものではありません。投資は自己判断・自己責任で行うものであり、元本割れのリスクがあります。\n\n## なぜ大学生のうちに始めようと思ったか\n\n- 社会人になってから初めて向き合うより、失敗してもリカバリーしやすい学生のうちに経験しておきたかった\n- 「お金を増やす」ことより先に、「お金の動きに慣れる」ことを目的にした\n- 決まった銘柄をじっくり見続けることで、値動きの「クセ」を体感で掴みたかった\n\nという理由から、少額で始めることに決めました。\n\n## 最初にぶつかった壁\n\n- チャートを見ていると「上がりそう」「下がりそう」という感覚はあっても、それを言語化できない\n- 感覚だけで売買すると、勝った理由も負けた理由も後から説明できない\n- 「損切りできない」問題。含み損を抱えると「戻るまで待とう」と判断が鈍る\n\nこのあたりは、投資を始めた人がほぼ通る道だと思います。私も例外なくハマりました。\n\n## 続けてみて変わったこと\n\n### 1. 毎日のルーティンを決めた\n起きてから相場を見るまでの流れ（ニュース確認→方向感の整理→売買判断）を毎朝同じ順番でやるようにしたら、感情に振り回されることが減りました。\n\n### 2. トレードを記録するようになった\n勝っても負けても「なぜその判断をしたか」を残すようにしたところ、自分の判断のクセ（例えば同じような場面で同じミスをしている、など）が見えるようになりました。\n\n### 3. 「毎日勝つ」を目指すのをやめた\n1回1回の結果に一喜一憂するのではなく、1ヶ月・3ヶ月単位でルールを守れたかを振り返るようにしてから、精神的にかなり楽になりました。\n\n## これから投資を始める大学生へ\n\n- 最初から上手くいくとは思わない方がいい。授業料だと思って少額から\n- 感覚を言語化する（記録する）習慣が、遠回りに見えて一番の近道\n- 「稼ぐ」より先に「続けられる仕組み」を作る方が結果的に長続きする\n\nまだまだ試行錯誤の途中ですが、社会人になる前にこういう経験ができているのは良かったなと思っています。今後も学びがあれば発信していきます。","wordCount":942},{"num":4,"title":"ITパスポートの次は基本情報技術者。独学で勉強してみて感じたこと","category":"IT就活・資格","body":"こんにちは、まめです。\n\nITパスポートに独学で合格してから、次のステップとして基本情報技術者試験の勉強を始めました。同じ「独学」でも、正直ITパスポートの時とは難易度も勉強の進め方もだいぶ違うな、というのが今のところの実感です。\n\n## ITパスポートとの違いに戸惑った\n\nITパスポートは「用語や仕組みを知っているか」を問われる問題が中心だったのに対して、基本情報技術者はアルゴリズムやプログラミングの考え方そのものを問われる問題が増えます。最初の数週間は「暗記でどうにかなる範囲」だと思っていたら全然そうじゃなくて、素直に面食らいました。\n\n## 今のところの勉強法\n\n- 定番のテキストを1冊決めて、章ごとに「読む→章末問題を解く」を繰り返す\n- アルゴリズムの分野は、文章だけで理解しようとせず、実際に紙に処理の流れを書き出しながら追う\n- わからない用語が出てきたら、その場でClaudeに「これはどういう仕組みか」を聞いて、テキストの説明と両方から理解する\n\n一つの教材だけで完結させようとせず、わからないところはすぐに質問できる相手を持っておくと、詰まって勉強が止まる時間がかなり減る感覚があります。\n\n## つまずいたところ\n\n- アルゴリズムのトレース問題は、慣れるまでは時間がかかりすぎて焦った\n- 午後試験の長文問題は、時間配分の感覚が最初は全くつかめなかった\n- 「なんとなく分かった気になっている」状態と「本当に理解している」状態の差に、過去問を解くたびに気づかされる\n\n## これからIT資格に挑戦する人へ\n\n- ITパスポートで基礎を作ってから基本情報技術者に進む順番は、個人的には合っていたと思う\n- 「暗記でいける」と決めつけず、科目ごとに勉強の仕方を変える柔軟さが必要\n- わからないところをAIに聞きながら進めるのは、独学の心細さをかなり減らしてくれる\n\nまだ勉強の途中ですが、来年からエンジニアとして働く前に「基礎を自分の言葉で説明できる」状態を目指して、引き続き積み上げていきます。","wordCount":805},{"num":5,"title":"長期インターンの選考を受けてみて分かったこと","category":"IT就活・資格","body":"こんにちは、まめです。\n\n先日、長期インターンの選考に通過することができました。就活とはまた違う緊張感のある選考だったので、通過した記憶が新しいうちに、準備したことや感じたことを残しておきます。\n\n## なぜ長期インターンを受けようと思ったか\n\n就活はすでに終えていたのですが、「内定先で働き始める前に、実務に近い経験を積んでおきたい」という気持ちがありました。授業やアルバイトとは違う環境で、自分の実力がどれくらい通用するのか試してみたかった、というのが一番大きい理由です。\n\n## 選考で準備したこと\n\n- 自分がこれまでやってきたこと（プログラミングの独学・資格勉強・note運用など）を、時系列ではなく「何を考えて動いたか」で整理し直した\n- 「なぜこのインターンなのか」を聞かれた時に、その場しのぎの答えにならないよう、事前に自分の言葉で書き出しておいた\n- 完璧な実績を並べようとするのではなく、「今何ができて、何がまだできないか」を正直に話す準備をした\n\n## 選考を受けてみて感じたこと\n\n- 就活の面接よりも、実務でどう動けるかを具体的に聞かれる場面が多かった\n- 「わからないことをどう調べるか」「詰まった時にどう相談するか」という進め方そのものを見られている感覚があった\n- 完璧に答えようとするより、考えるプロセスを言葉にできるかの方が大事だと感じた\n\n## これから長期インターンを目指す人へ\n\n- 実績の大きさより、そこに至るまでの考え方を言葉にできるかの方が問われている\n- 「できないこと」を隠さずに話す方が、かえって信頼してもらえる場面もある\n- 就活と違う軸で自分を見直す機会になるので、就活後でも受けてみる価値はある\n\nまだ始まったばかりですが、学生のうちに実務の感覚を掴める機会をもらえたので、しっかり吸収していきたいと思います。","wordCount":729},{"num":6,"title":"文系ノリの大学生が、Claudeを勉強と作業でどう使っているか","category":"AI活用","body":"こんにちは、まめです。\n\nFXの自動売買Botの記事を書いた時に「Claudeをどんな風に使っているのか、もっと知りたい」という反応をもらったので、今日は勉強や日々の作業でどう使っているかをまとめてみます。\n\n## 「答えを聞く」より「考えを整理してもらう」使い方が多い\n\n一番使う場面は、実は「わからないことを教えてもらう」よりも「自分の考えがまとまっていない時に、話しながら整理する」場面です。資格の勉強で「この分野、なんとなく分かった気になっているけど自信がない」という時に、理解している部分を自分の言葉で説明してみて、抜けている部分を指摘してもらう、という使い方をよくします。\n\n## 具体的な使い方の例\n\n- 資格勉強で、テキストの説明を読んでも腑に落ちない部分を「これってつまりどういうこと？」と噛み砕いて聞く\n- noteの記事を書く時、伝えたいことは決まっているのに文章にすると硬くなる時に、いったん壁打ち相手として意見をもらう\n- FX Botのように、コードにしたい処理を日本語で説明して、実装のたたき台を作ってもらう\n- スケジュールが詰まっている時に、優先順位の付け方を一緒に整理してもらう\n\n## 使ってみて気をつけていること\n\n- 出てきた答えをそのまま鵜呑みにせず、「なぜそうなるのか」を自分でも追えるかを確認する\n- 特に資格勉強や投資関連は、最終的な理解・判断は自分でするものだと意識する\n- 「考える手間を省く道具」ではなく「考えを深めるための壁打ち相手」として使うのが、自分には合っている\n\n## これからAIを使ってみたい大学生へ\n\n- 難しい使い方をしなくても、「今考えていることをそのまま話してみる」だけで十分価値がある\n- 完璧な答えを求めるより、自分の理解の抜けに気づく道具として使う方が学びが多い\n\nスペシャルなスキルがあるわけではない普通の大学生でも、こういう使い方でずいぶん助けられているので、これからも実践的な活用例を記録していきます。","wordCount":789},{"num":7,"title":"デイトレと積立投資、あえて両方やっている理由","category":"投資・トレード","body":"こんにちは、まめです。\n\n投資というと「デイトレのように短期で売買するもの」と「積立でコツコツ長期に持つもの」で、やっている人が分かれるイメージがあるかもしれません。私は両方を並行してやっていて、今日はその理由と、それぞれから学んでいることの違いをまとめてみます。\n\n## きっかけは「性質の違うものを両方経験しておきたい」\n\nデイトレを始めたのは、値動きに慣れて「お金の動きに対する感覚」を身につけたかったからです。一方で積立投資は、それとは別に「長期でコツコツ続けることの効果」を体感しておきたくて始めました。どちらか一方だけでは学べないことがあると思ったのが、両方続けている一番の理由です。\n\n## 求められる感覚が全然違う\n\n- デイトレは、その日その場での判断力と、損切りを含めた即断即決の姿勢が求められる\n- 積立投資は逆に、日々の値動きに一喜一憂せず「決めた金額を淡々と積み続ける」我慢強さが求められる\n- 同じ「投資」という言葉でも、必要なメンタルの使い方がほぼ真逆だと分かったのは新鮮だった\n\n## 両方やってみて気づいたこと\n\n- デイトレで「感情に流されると判断を誤る」経験をしたことで、積立投資を「値動きが気になっても淡々と続ける」姿勢がむしろ楽にできるようになった\n- 逆に積立投資で「短期の増減を気にしない」感覚を持てたことで、デイトレでの含み損にも以前より冷静に向き合えるようになった\n- 短期と長期、両方の時間軸で「お金と向き合う」経験をしたことで、片方だけやっていた時より視野が広がった感覚がある\n\n## これから投資を始める大学生へ\n\n- 「デイトレか積立か」で悩む必要はなく、目的が違うものとして両方試してみるのもあり\n- 短期の経験は長期の投資への向き合い方にも、長期の経験は短期の判断にも、お互いに良い影響を与えてくれる\n- 大事なのはどちらが正解かではなく、自分に必要な感覚を意識して使い分けること\n\n※この記事は特定の商品や手法をすすめるものではありません。投資には元本割れ等のリスクがあり、実践する場合はご自身の判断・責任でお願いします。\n\n性質の違う2つの投資を並行してみることで、想像していたより多くの気づきがありました。これからも学生のうちにしか積めない経験として、両方続けていきたいと思います。","wordCount":917},{"num":8,"title":"個別指導塾のバイトを続けてきて分かったこと","category":"バイト・お金","body":"こんにちは、まめです。\n\n大学生活の中で一番長く続けているバイトが、個別指導塾での講師の仕事です。日々の資格勉強やインターンの話が多くなりがちですが、今日は一番の土台になっている個別指導のバイトについて書いてみます。\n\n## 「教える」は「分かっている」だけではできない\n\n個別指導を始めた頃、自分では理解しているつもりの内容でも、いざ生徒に説明しようとすると言葉に詰まることがよくありました。「分かっている」と「人に分かるように説明できる」は全然別のスキルなんだと、身をもって知りました。\n\n## 続けてきて身についたと感じること\n\n- 相手がどこでつまずいているかを、質問の仕方や表情から推測する力\n- 一つの説明で伝わらなかった時に、別の角度から言い換える引き出しの多さ\n- 「教える側の説明」より「相手が納得できたかどうか」を基準に進め方を変える意識\n\n## 資格勉強やnote執筆にも活きている\n\n意外だったのは、このバイトで身についた「噛み砕いて説明する力」が、自分の資格勉強やnoteの記事を書く時にも活きていることです。ITパスポートの勉強でも「人に説明できるレベルまで理解する」ことを意識するようになったのは、間違いなくこのバイトの影響だと思います。\n\n## これから教える系のバイトをする人へ\n\n- 教える経験は、自分の理解を深め直す一番の近道になる\n- 「伝わらない」時に相手のせいにせず、伝え方を変える引き出しを増やす方が早い\n- 長く続けることで見えてくる成長もあるので、すぐに結果が出なくても焦らなくていい\n\n長く続けてきたバイトだからこそ得られたものが多いので、これからも大事にしたい経験の一つです。","wordCount":667},{"num":9,"title":"バイトを一つ辞めて、インターンに絞ることにした話","category":"バイト・お金","body":"こんにちは、まめです。\n\n大学生活の中で続けていた飲食店のバイトを辞め、長期インターンに時間を使う選択をしました。今日はその決断に至った経緯を振り返ってみます。\n\n## 両立が難しくなってきたタイミング\n\n資格の勉強・note運用・投資の記録・学生団体の活動と、もともとやりたいことが多く、正直スケジュールはかなりぎりぎりでした。そこに長期インターンが加わることになり、「全部を今までと同じペースで続けるのは無理がある」と感じたのが最初のきっかけです。\n\n## 何を基準に辞める方を選んだか\n\n- 収入源としては個別指導塾のバイトも残るので、生活が急に立ち行かなくなるわけではないと確認した\n- 飲食店のバイトは経験として得たものは大きかったが、「今後さらに伸ばしたいスキル」との関連は薄かった\n- インターンは「来年から働く土台を作る」という今の目的に一番直結していた\n\n「どちらが好きか」ではなく「今の自分の目的に対してどちらが必要か」で判断する、という視点で決めました。\n\n## 辞めてみて感じたこと\n\n- 一つ手放すだけで、思っていた以上に気持ちの余裕ができた\n- 「全部を維持しよう」とすること自体が、実は一番のストレス源だったと気づいた\n- 収入や時間の配分が変わるので、事前に大まかな見通しを立てておいて良かった\n\n## これから優先順位を見直したい人へ\n\n- 「頑張れば全部できる」ではなく「今の目的に一番必要なものはどれか」で選ぶと決断しやすい\n- 一つ手放すことは後退ではなく、今のフェーズに合わせた調整だと捉えていい\n- 収入や生活への影響は、感覚ではなく事前にざっくりでも確認しておくと安心\n\n学生のうちにこうやって優先順位を見直す経験ができたのは、社会人になってからも役立つ練習だったと思っています。","wordCount":705},{"num":10,"title":"英語の勉強を毎朝の習慣にしてみて分かったこと","category":"習慣・生活","body":"こんにちは、まめです。\n\n資格の勉強や投資の記録が続くと、つい後回しになりがちなのが英語の勉強です。まとまった時間を取るのは難しいので、朝の時間に組み込むようにしてから、ようやく継続できるようになってきました。\n\n## なぜ朝に英語をやることにしたか\n\n夜にやろうとすると、その日にあったこと（バイトや勉強、トレードの振り返りなど）で疲れてしまい、結局後回しにして寝てしまう、というのを何度も繰り返していました。「一日の中で一番邪魔が入らない時間はいつか」と考えた時に、残っていたのが起きてすぐの時間でした。\n\n## 続けてみて分かったこと\n\n- 「気が向いたらやる」ではなく「起きたらまずやる」と決めてしまう方が、結果的に続けやすい\n- 完璧に理解しようとせず、量をこなすことを優先した方が朝の時間には合っている\n- 英語だけを毎日やる時間を固定したことで、一日全体のリズムも整いやすくなった\n\n## 資格勉強・投資との両立で意識していること\n\n朝に英語、その後に相場の確認とデイトレ、という順番を固定するようにしてから、「今日は何からやればいいんだっけ」と迷う時間がなくなりました。習慣は一つひとつバラバラに考えるより、順番ごとセットで組んでしまう方が続けやすいと感じています。\n\n## これから朝の習慣を作りたい人へ\n\n- 「やる気がある時にやる」より「時間と順番を先に決めてしまう」方が続く\n- 完璧を求めすぎず、まずは毎日触れることを優先する\n- 一つの習慣を他の習慣とセットで固定すると、迷う時間そのものが減る\n\nまだまだ理想には遠いですが、細く長く続けることを大事にしながら、社会人になってからも崩れないリズムを今のうちに作っておきたいと思っています。","wordCount":685},{"num":11,"title":"デイトレの後に筋トレする生活リズムを作った理由","category":"習慣・生活","body":"こんにちは、まめです。\n\n英語→相場確認→デイトレ、という朝のルーティンの後に、実は筋トレを組み込んでいます。一見デイトレと筋トレは関係なさそうですが、続けてみるとちゃんと理由があったので今日はその話です。\n\n## デイトレ後に頭がずっと相場のことを考えてしまう問題\n\nデイトレをした日は、取引が終わった後も「あの判断で良かったのか」「次はどうしよう」と頭の中で相場のことを考え続けてしまう時期がありました。切り替えができないまま次の予定に移ると、集中力も落ちるし、地味にストレスも溜まっていきます。\n\n## 筋トレを間に挟むようにした理由\n\n- 体を動かす時間を強制的に挟むことで、頭の中を一度リセットできる\n- トレードの結果が良くても悪くても、その日の体を動かす予定は変えないと決めることで、感情に流されにくくなった\n- 「今日はダメな日だった」と引きずるより、次の予定（筋トレ）に淡々と移る方が、結果的にメンタルが安定する\n\n## 続けてみて感じている変化\n\n- トレードの良し悪しと一日の気分が直結しなくなった\n- 体を動かすこと自体が、判断のクセを振り返る時間にもなっている（黙々と体を動かしていると、意外と冷静に自分の判断を振り返れる）\n- 生活のリズムが整うと、勉強や作業の集中力にも良い影響が出ている感覚がある\n\n## これから生活リズムを整えたい人へ\n\n- 感情が乱れやすい予定（自分の場合はデイトレ）の後には、強制的に頭を切り替える予定を入れておくと楽になる\n- 結果の良し悪しに関わらず「次の予定は変えない」と決めておくと、引きずる時間が減る\n- 体を動かす習慣は、メンタルの安定にも思っていた以上に効いてくる\n\nトレードそのものだけでなく、その前後の過ごし方まで含めて生活を設計する、という視点は続けてみて初めて気づいたことでした。","wordCount":723},{"num":12,"title":"自動売買Botとは別に、株価予測のミニツールも自作してみた話","category":"AI活用","body":"こんにちは、まめです。\n\n以前、Claudeと一緒に作ったFXの自動売買Botの話を書きましたが、実はそれとは別に「株価の判断材料になるミニツール」も自作しています。今日はその話です。\n\n## 自動売買Botとの役割の違い\n\nFXの自動売買Botは「決めたルール通りに売買を実行してくれる」ためのものですが、今回作ったミニツールは真逆で、「売買の判断をする前に、状況を整理して見やすくする」ためのものです。自動で何かを実行するのではなく、あくまで自分が判断するための材料を用意してくれる道具、というイメージです。\n\n## 作ろうと思ったきっかけ\n\nデイトレをしていると、チャートを見ながら頭の中で色々な情報（値動きの傾向やニュースの有無など）を整理する必要があるのですが、これを毎回手作業でやるのは地味に大変でした。「見るべき情報を先に整理して並べてくれるツールがあれば、判断がもっと楽になるのでは」と思ったのがきっかけです。\n\n## 作り方はBotの時とほぼ同じ\n\n- 「こういう情報を、こういう見せ方で整理したい」をClaudeに日本語で説明する\n- 出てきたコードを実際に動かしてみて、見づらいところや欲しい情報が足りないところを直していく\n- 完成形を最初から狙わず、「使いながら少しずつ改良する」を繰り返す\n\nプログラミング未経験に近い自分でも、目的がはっきりしていれば、この進め方で形にできることが分かったのは大きな収穫でした。\n\n## 使ってみて感じていること\n\n- 判断材料が整理された状態でチャートを見られるようになり、感覚だけで売買していた頃より根拠を言葉にしやすくなった\n- ツールが出す情報はあくまで参考であって、最終的な判断は自分でするものだという意識は変わらず持っている\n- 「自動化するもの」と「判断を助けるもの」は目的が違うので、作る時に混同しないことが大事だと分かった\n\n同じ「投資×AI」でも、自動で実行させる方向と、判断を助けてもらう方向の両方を試せたのは良い経験でした。これからも使いながら改良を続けていきます。","wordCount":826},{"num":13,"title":"「業務委託」という働き方を、学生インターンで初めて知った話","category":"バイト・お金","body":"こんにちは、まめです。\n\n長期インターンの選考を通過した際、雇用契約ではなく「業務委託契約」という形で関わることになりました。恥ずかしながら、それまで業務委託という言葉は聞いたことがあっても、中身をちゃんと理解していませんでした。今日はその時に調べたことをまとめます。\n\n## アルバイトとの違いに戸惑った\n\nアルバイトは「雇用契約」で、働いた時間に対して給与が支払われ、いわゆる労働者として扱われます。一方の業務委託は、会社の指示の下で「働く」というより、決められた成果や業務を独立した立場で「引き受ける」という契約の形で、性質がかなり違うということを初めて知りました。\n\n## 調べて分かったこと\n\n- 業務委託は労働基準法の適用のされ方がアルバイトとは異なり、時間ではなく成果に対して報酬が発生する考え方が基本になっている\n- 収入の扱いも変わってくるため、税金や扶養の考え方もアルバイトの給与とは別に整理して考える必要がある\n- 学生であっても、契約内容によっては自分で確認・管理しなければいけないことが増える\n\nこのあたりは知らないままにしておくと後で困る内容だったので、契約前にひとつずつ調べて理解しておいて良かったと感じています。\n\n## 学生のうちに知れて良かったこと\n\n- 「雇われる」以外にもいろいろな働き方の形があることを、社会人になる前に体験できた\n- 契約の形によって自分が果たすべき責任の範囲が変わることを、実感を持って学べた\n- わからない言葉をそのままにせず、契約前に調べて理解する習慣がついた\n\n## これから業務委託での仕事に関わる学生へ\n\n- 「アルバイトと同じようなもの」と思い込まず、契約内容は自分でちゃんと確認する\n- わからない用語が出てきたら、契約前にひとつずつ調べておくと後で困らない\n- 収入や税金の扱いが変わる可能性があるので、早めに整理しておくと安心\n\n働き方の選択肢が増えている時代だからこそ、こういう契約の違いを学生のうちから知っておくのは意味があることだと感じています。","wordCount":808}]</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('article-data').textContent);
+  const CATS = ["AI活用","IT就活・資格","投資・トレード","バイト・お金","習慣・生活"];
+  const state = { query: '', category: 'all' };
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function inline(s) {
+    return escapeHtml(s)
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  }
+  function formatBody(body) {
+    return body.split(/\n\n+/).map(function (block) {
+      const b = block.trim();
+      if (!b) return '';
+      const lines = b.split('\n');
+      let html = '';
+      let para = [];
+      let items = [];
+      function flushPara() { if (para.length) { html += '<p>' + para.join('<br>') + '</p>'; para = []; } }
+      function flushList() { if (items.length) { html += '<ul>' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>'; items = []; } }
+      lines.forEach(function (line) {
+        const t = line.trim();
+        if (!t) return;
+        if (t.indexOf('### ') === 0) { flushPara(); flushList(); html += '<h4>' + inline(t.slice(4)) + '</h4>'; }
+        else if (t.indexOf('## ') === 0) { flushPara(); flushList(); html += '<h3>' + inline(t.slice(3)) + '</h3>'; }
+        else if (t.indexOf('- ') === 0) { flushPara(); items.push(inline(t.slice(2))); }
+        else if (t.indexOf('※') === 0) { flushList(); flushPara(); html += '<div class="callout">' + inline(t) + '</div>'; }
+        else { flushList(); para.push(inline(t)); }
+      });
+      flushPara(); flushList();
+      return html;
+    }).join('');
+  }
+  function catColorVar(cat) { return 'var(--cat-' + cat + ')'; }
+
+  function renderFilters() {
+    const catWrap = document.getElementById('cat-filters');
+    const pill = function (label, pressed) {
+      return '<button class="pill" aria-pressed="' + pressed + '">' + label + '</button>';
+    };
+    let html = pill('全て', state.category === 'all');
+    CATS.forEach(function (c) { html += pill(c, state.category === c); });
+    catWrap.innerHTML = html;
+    catWrap.querySelectorAll('.pill').forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        state.category = i === 0 ? 'all' : CATS[i - 1];
+        render();
+      });
+    });
+  }
+  function matches(a) {
+    if (state.category !== 'all' && a.category !== state.category) return false;
+    if (state.query) {
+      const q = state.query.toLowerCase();
+      if (!a.title.toLowerCase().includes(q) && !a.body.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }
+  function render() {
+    renderFilters();
+    const list = DATA.filter(matches);
+    const container = document.getElementById('list');
+    document.getElementById('count-label').textContent = list.length + '本を表示中';
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state">該当する記事がありません</div>';
+      return;
+    }
+    container.innerHTML = list.map(function (a) {
+      return (
+        '<li>' +
+        '<details class="article">' +
+        '<summary class="article-head">' +
+        '<span class="a-num">' + a.num + '</span>' +
+        '<span class="a-main">' +
+        '<p class="a-title">' + escapeHtml(a.title) + '</p>' +
+        '<span class="a-meta">' +
+        '<span class="chip cat" style="background:' + catColorVar(a.category) + '">' + a.category + '</span>' +
+        '<span class="chip tabular">' + a.wordCount.toLocaleString() + '字</span>' +
+        '</span></span>' +
+        '<svg class="a-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</summary>' +
+        '<div class="article-body"><div class="a-prose">' + formatBody(a.body) + '</div></div>' +
+        '</details></li>'
+      );
+    }).join('');
+  }
+
+  document.getElementById('search').addEventListener('input', function (e) {
+    state.query = e.target.value.trim();
+    render();
+  });
+  render();
+})();
+</script>
